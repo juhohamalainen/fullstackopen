@@ -1,43 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Filter from './components/Filter'
+import Contacts from './components/Contacts'
+import ContactForm from './components/ContactForm'
+import axios from 'axios'
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas',
-      number: '0700 123 123',
-      id: 1 }
-  ]) 
+  const [contacts, setContacts] = useState([]) 
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
-  const [filtered, setFiltered] = useState(persons)
+  const [initialContacts, setInitialContacts] = useState([])
+  const [inputValue, setInputValue] = useState('')
+
+  useEffect(() => {
+    axios
+    .get('http://localhost:3001/contacts')
+    .then(response => {
+      setInitialContacts(response.data)
+    })
+  },[])
+
+  useEffect(() => {
+    if (inputValue === '') {
+      setContacts(initialContacts)
+    } else {
+      const search = initialContacts.filter(contact => contact.name.includes(inputValue))
+      search.length ? setContacts(search) : setContacts([])
+      console.log(initialContacts)
+    }
+    
+  },[inputValue, initialContacts])
 
   const handleFilterChange = (event) => {
-    console.log(event.target.value)
-    const search = persons.filter(person => person.name.includes(event.target.value))
-    console.log(search)
-    setFiltered(search)
+    setInputValue(event.target.value)
   }
 
-//jos persons.include event.target.value niin setshowall(!showAll)
-
-  const addPerson = (event) => {
+  const addContact = (event) => {
     event.preventDefault()
-    const personObject = {
+    const contactObject = {
       name: newName,
       number: newNumber,
-      id: persons.length + 1,
+      id: contacts.length + 1,
     }
-    if (persons.some((p) =>
-    p.name === personObject.name)) {
-      alert(`${personObject.name} is already on phonebook`)
+    if (contacts.some((p) =>
+    p.name === contactObject.name)) {
+      alert(`${contactObject.name} is already on phonebook`)
       return;
     }
-    if (persons.some((p) =>
-    p.number === personObject.number)) {
-      alert(`${personObject.number} is already on phonebook`)
+    if (contacts.some((p) =>
+    p.number === contactObject.number)) {
+      alert(`${contactObject.number} is already on phonebook`)
       return;
     }
-      setPersons(persons.concat(personObject))
-      setFiltered(persons.concat(personObject))
+      setContacts(contacts.concat(contactObject))
       setNewName('')
       setNewNumber('')
     
@@ -52,39 +66,32 @@ const App = () => {
   }
 
   return (
-    <div>
+    <>
       <h2>Phonebook</h2>
-      <input onChange={handleFilterChange}/>
-      <div>
-      </div>
-      <form onSubmit={addPerson}>
-        <div>
-          name:
-          <input 
-          value={newName}
-          onChange={handleNameChange}
-          />
-        </div>
-        <div>
-          number:
-          <input 
-          value={newNumber}
-          onChange={handleNumberChange}
-          />
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
+      <Filter 
+      handleFilterChange={handleFilterChange}
+      />
+
+      <ContactForm 
+      addContact={addContact}
+      newName={newName}
+      newNumber={newNumber}
+      handleNameChange={handleNameChange}
+      handleNumberChange={handleNumberChange}
+      />
+      
       <h2>Numbers</h2>
-      <ul>
-      {filtered.map((person) => (
-        <p key={person.id}>
-          {person.name} {person.number}
-        </p>
-      ))}
-      </ul>
-    </div>
+      {contacts.length ?
+      <div>
+        {contacts.map((contact) => (
+        <Contacts
+        key={contact.id}
+        name={contact.name}
+        number={contact.number}
+        />
+        ))}
+      </div> : null}
+    </>
   )
 
 }
