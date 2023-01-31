@@ -33,18 +33,18 @@ const App = () => {
 
   const handleDeleteContact = (name, id) => {
     return () => {
-      if (window.confirm(`Poistetaanko ${name} ?`)) {
+      if (window.confirm(`Are you sure you want to delete ${name} from the phonebook?`)) {
         contactDB
           .deleteContact(id)
           .then(() => {
             setContacts(contacts.filter(n => n.id !== id));
-            alert(`Poistettiin ${name}`);
+            alert(`${name} removed successfully`);
             setNewName("");
             setNewNumber("");
           })
           .catch(error => {
             setContacts(contacts.filter(n => n.name !== name));
-            alert(`Käyttäjä ${name} on jo poistettu palvelimelta.`);
+            alert(`Contact ${name} has already been removed from the phonebook`);
           });
         setTimeout(() => {
           
