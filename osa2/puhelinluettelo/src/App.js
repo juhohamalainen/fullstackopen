@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Filter from './components/Filter'
 import Contacts from './components/Contacts'
 import ContactForm from './components/ContactForm'
+import contactDB from './services/contactDB'
 import axios from 'axios'
 
 const App = () => {
@@ -12,12 +13,12 @@ const App = () => {
   const [inputValue, setInputValue] = useState('')
 
   useEffect(() => {
-    axios
-    .get('http://localhost:3001/contacts')
+    contactDB
+    .getAll()
     .then(response => {
-      setInitialContacts(response.data)
-    })
-  },[])
+      setInitialContacts(response);
+    });
+  }, []);
 
   useEffect(() => {
     if (inputValue === '') {
@@ -29,6 +30,28 @@ const App = () => {
     }
     
   },[inputValue, initialContacts])
+
+  const handleDeleteContact = (name, id) => {
+    return () => {
+      if (window.confirm(`Poistetaanko ${name} ?`)) {
+        contactDB
+          .deleteContact(id)
+          .then(() => {
+            setContacts(contacts.filter(n => n.id !== id));
+            alert(`Poistettiin ${name}`);
+            setNewName("");
+            setNewNumber("");
+          })
+          .catch(error => {
+            setContacts(contacts.filter(n => n.name !== name));
+            alert(`Käyttäjä ${name} on jo poistettu palvelimelta.`);
+          });
+        setTimeout(() => {
+          
+        }, 3000);
+      }
+    };
+  };
 
   const handleFilterChange = (event) => {
     setInputValue(event.target.value)
@@ -51,9 +74,15 @@ const App = () => {
       alert(`${contactObject.number} is already on phonebook`)
       return;
     }
-      setContacts(contacts.concat(contactObject))
+    axios
+    .post('http://localhost:3001/contacts', contactObject)
+    .then(response => {
+      setContacts(contacts.concat(response.data))     
       setNewName('')
       setNewNumber('')
+    })
+      
+  
     
   }
   const handleNameChange = (event) => {
@@ -88,6 +117,7 @@ const App = () => {
         key={contact.id}
         name={contact.name}
         number={contact.number}
+        deleteContact={handleDeleteContact(contact.name, contact.id)}
         />
         ))}
       </div> : null}

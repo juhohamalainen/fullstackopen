@@ -1,4 +1,4 @@
-import './App.css'
+import './App.css';
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import Country from './components/Country'
@@ -9,6 +9,7 @@ const App = () => {
   const [search, setSearch] = useState('')
   const [tooMany, setTooMany] = useState('')
   const [showMoreData, setShowMorewData] = useState(false)
+  const [weatherData, setWeatherData] = useState({})
   
   useEffect(() => {
     console.log('effect')
@@ -21,6 +22,7 @@ const App = () => {
   }, [])
   console.log('render', initialCountries.length, 'initialCountries')
 
+
   useEffect(() => {
     const find = initialCountries.filter(country => country.name.common.includes(search))
     if (find.length > 10) {
@@ -32,6 +34,14 @@ const App = () => {
     }
     if (find.length === 1) {
       setShowMorewData(true)
+      const capital = countries.map((country) => country.capital[0]);
+      const api_key = process.env.REACT_APP_API_KEY
+    axios
+    .get(`https://api.openweathermap.org/data/2.5/weather?q=${capital[0]}&units=metric&&appid=${api_key}`)
+    .then(response => {
+      setWeatherData(response.data)
+
+    })
     } else {
       setShowMorewData(false)
     }
@@ -39,6 +49,10 @@ const App = () => {
   },[search, initialCountries])
 
   const inputHandler = (event) => {
+    setSearch(event.target.value)
+  }
+  
+  const show = (event) => {
     setSearch(event.target.value)
   }
 
@@ -53,9 +67,12 @@ const App = () => {
           <Country
           key={i}
           name={country.name.common}
+          capital={country.capital}
           flag={country.flags.png}
           languages={country.languages}
           showMoreData={showMoreData}
+          show={show}
+          weatherData={weatherData}
           />
           ))}
         </div> : null}
