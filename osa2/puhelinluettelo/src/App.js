@@ -4,6 +4,7 @@ import Contacts from './components/Contacts'
 import ContactForm from './components/ContactForm'
 import contactDB from './services/contactDB'
 import axios from 'axios'
+import Notification from './components/Notification'
 
 const App = () => {
   const [contacts, setContacts] = useState([]) 
@@ -11,6 +12,7 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [initialContacts, setInitialContacts] = useState([])
   const [inputValue, setInputValue] = useState('')
+  const [notification, setNotification] = useState(null)
 
   useEffect(() => {
     contactDB
@@ -38,7 +40,10 @@ const App = () => {
           .deleteContact(id)
           .then(() => {
             setContacts(contacts.filter(n => n.id !== id));
-            alert(`${name} removed successfully`);
+            setNotification(`${name} removed successfully`);
+            setTimeout(() => {          
+              setNotification(null)        
+            }, 5000)
             setNewName("");
             setNewNumber("");
           })
@@ -80,6 +85,10 @@ const App = () => {
       setContacts(contacts.concat(response.data))     
       setNewName('')
       setNewNumber('')
+      setNotification(`${newName} added successfully`)
+      setTimeout(() => {          
+        setNotification(null)        
+      }, 5000)
     })
       
   
@@ -97,6 +106,7 @@ const App = () => {
   return (
     <>
       <h2>Phonebook</h2>
+      <Notification message={notification} />
       <Filter 
       handleFilterChange={handleFilterChange}
       />
